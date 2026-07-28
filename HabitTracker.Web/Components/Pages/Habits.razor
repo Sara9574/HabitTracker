@@ -1,0 +1,36 @@
+﻿@page "/habits"
+
+@inject IHabitService HabitService
+
+<h3>My Habits</h3>
+
+@if (habits == null)
+{
+    <p>Loading...</p>
+}
+else if (!habits.Any())
+{
+    <p>No habits yet.</p>
+}
+else
+{
+    <ul>
+        @foreach (var habit in habits)
+        {
+            <li>
+                <strong>@habit.Name</strong>
+                (Weekly goal: @habit.WeeklyGoal)
+                — Completed @habit.Completions.Count times
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Habit> habits = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        habits = await HabitService.GetHabitsAsync();
+    }
+}
