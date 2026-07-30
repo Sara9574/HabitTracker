@@ -1,4 +1,5 @@
 ﻿@page "/habits"
+@rendermode InteractiveServer
 
 @inject IHabitService HabitService
 
@@ -21,7 +22,31 @@ else
                 <strong>@habit.Name</strong>
                 (Weekly goal: @habit.WeeklyGoal)
                 — Completed @habit.Completions.Count times
+
+                <button class="btn btn-success btn-sm ms-2"
+                        @onclick="() => MarkAsDone(habit.Id)">
+                    Mark as Done
+                </button>
+
+                @* Progress Bar *@
+                @{
+                    var weekly = HabitService.GetWeeklyCompletions(habit);
+                    var percent = HabitService.GetProgressPercentage(habit);
+                    var color = HabitService.GetProgressColor(percent);
+                }
+
+                <div class="progress mt-2" style="width: 300px;">
+                    <div class="progress-bar @color"
+                         role="progressbar"
+                         style="width: @percent%;"
+                         aria-valuenow="@percent"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                        @percent%
+                    </div>
+                </div>
             </li>
+
         }
     </ul>
 }
@@ -32,5 +57,11 @@ else
     protected override async Task OnInitializedAsync()
     {
         habits = await HabitService.GetHabitsAsync();
+    }
+
+    private async Task MarkAsDone(int habitId)
+    {
+        await HabitService.AddCompletionAsync(habitId);
+        habits = await HabitService.GetHabitsAsync(); // refresh list
     }
 }

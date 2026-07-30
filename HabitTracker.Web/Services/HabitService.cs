@@ -56,14 +56,44 @@ namespace HabitTracker.Web.Services
 
         public async Task AddCompletionAsync(int habitId)
         {
-            var completion = new HabitCompletion
+            var habit = await _context.Habits
+                .Include(h => h.Completions)
+                .FirstOrDefaultAsync(h => h.Id == habitId);
+
+            if (habit == null)
+                return;
+
+            habit.Completions.Add(new HabitCompletion
             {
                 HabitId = habitId,
                 Date = DateTime.UtcNow
-            };
+            });
 
-            _context.HabitCompletions.Add(completion);
             await _context.SaveChangesAsync();
+        }
+
+        public int GetWeeklyCompletions(Habit habit)
+        {
+            var startOfWeek = DateTime.UtcNow.Date.AddDays(-(int)DateTime.UtcNow.DayOfWeek);
+            return habit.Completions.Count(c => c.Date >= startOfWeek);
+        }
+
+        public int GetProgressPercentage(Habit habit)
+        {
+            var weekly = GetWeeklyCompletions(habit);
+
+            if (habit.WeeklyGoal == 0)
+                return 0;
+
+            return (int)((double)weekly / habit.WeeklyGoal * 100);
+        }
+        public string GetProgressColor(int percentage)
+        {
+            if (percentage >= 100)
+                return "bg-success";   // green
+            if (percentage >= 50)
+                return "bg-warning";   // yellow
+            return "bg-danger";        // red
         }
     }
 }
