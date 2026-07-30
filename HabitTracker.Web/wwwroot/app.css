@@ -58,3 +58,65 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+
+.calendar {
+    max-width: 420px;
+}
+
+.calendar-header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.day-name {
+    font-weight: bold;
+    text-align: center;
+}
+
+.day {
+    width: 80px;
+    height: 80px;
+    background-color: #f0f0f0;
+    border-radius: 6px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.date-number {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+.dots {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: left;
+}
+
+.dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 3px;
+    vertical-align: middle;
+}
+
+.day.empty {
+    background-color: transparent;
+}
+
+
+.legend-text {
+    margin-right: 10px;
+}

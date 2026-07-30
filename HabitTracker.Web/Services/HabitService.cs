@@ -95,5 +95,31 @@ namespace HabitTracker.Web.Services
                 return "bg-warning";   // yellow
             return "bg-danger";        // red
         }
+
+
+        public Dictionary<int, string> GetHabitColors(List<Habit> habits)
+        {
+            string[] colors = new[]
+            {
+        "#4caf50", // green
+        "#2196f3", // blue
+        "#9c27b0", // purple
+        "#ff9800", // orange
+        "#e91e63", // pink
+        "#795548", // brown
+        "#009688", // teal
+        "#3f51b5", // indigo
+    };
+
+            var map = new Dictionary<int, string>();
+
+            for (int i = 0; i < habits.Count; i++)
+            {
+                map[habits[i].Id] = colors[i % colors.Length];
+            }
+
+            return map;
+        }
+
     }
 }

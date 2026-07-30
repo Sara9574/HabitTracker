@@ -13,5 +13,6 @@ namespace HabitTracker.Web.Services
         int GetWeeklyCompletions(Habit habit);
         int GetProgressPercentage(Habit habit);
         string GetProgressColor(int percentage);
+        Dictionary<int, string> GetHabitColors(List<Habit> habits);
     }
 }

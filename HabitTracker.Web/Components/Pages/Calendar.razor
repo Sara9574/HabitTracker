@@ -1,0 +1,94 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using HabitTracker.Web.Models
+@inject IHabitService HabitService
+
+@if (habits == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="calendar">
+        <div class="calendar-header">
+            <h4>@currentMonth.ToString("MMMM yyyy")</h4>
+        </div>
+
+        <div class="calendar-grid">
+            @foreach (var dayName in dayNames)
+            {
+                <div class="day-name">@dayName</div>
+            }
+
+            @foreach (var day in calendarDays)
+            {
+                if (day == DateTime.MinValue)
+                {
+                    <div class="day empty"></div>
+                }
+                else
+                {
+                    <div class="day">
+                        <div class="date-number">@day.Day</div>
+
+                        <div class="dots">
+                            @foreach (var habit in habits)
+                            {
+                                bool completed = habit.Completions
+                                    .Any(c => c.Date.Date == day.Date);
+
+                                if (completed)
+                                {
+                                    <span class="dot" title="@habit.Name"
+                                          style="background-color:@habitColors[habit.Id]"></span>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <h5 class="mt-5">Habits</h5>
+        
+            @foreach (var habit in habits)
+            {
+                <span class="dot" style="background-color:@habitColors[habit.Id]"></span>
+                <span style="color:@habitColors[habit.Id]" class="legend-text">@habit.Name</span>
+            }
+    </div>
+}
+
+@code {
+    private List<Habit> habits;
+    private Dictionary<int, string> habitColors;
+    private DateTime currentMonth = DateTime.Today;
+    private List<DateTime> calendarDays = new();
+    private string[] dayNames = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        habits = await HabitService.GetHabitsAsync();
+        habitColors = HabitService.GetHabitColors(habits);
+
+        BuildCalendar();
+    }
+
+    private void BuildCalendar()
+    {
+        var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+
+        int offset = ((int)firstDay.DayOfWeek + 6) % 7;
+
+        calendarDays = Enumerable.Range(0, offset)
+            .Select(_ => DateTime.MinValue)
+            .ToList();
+
+        int daysInMonth = DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month);
+
+        calendarDays.AddRange(
+            Enumerable.Range(1, daysInMonth)
+                .Select(day => new DateTime(currentMonth.Year, currentMonth.Month, day))
+        );
+    }
+}
