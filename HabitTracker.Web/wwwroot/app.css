@@ -120,3 +120,7 @@ h1:focus {
 .legend-text {
     margin-right: 10px;
 }
+
+.calendar-header button {
+    min-width: 90px;
+}

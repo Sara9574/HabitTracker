@@ -11,7 +11,15 @@ else
 {
     <div class="calendar">
         <div class="calendar-header">
-            <h4>@currentMonth.ToString("MMMM yyyy")</h4>
+           
+            <div class="calendar-header d-flex justify-content-between align-items-center mb-3">
+                <button class="btn btn-outline-primary btn-sm" @onclick="ShowPreviousMonth">← Previous</button>
+
+                <h4>@currentMonth.ToString("MMMM yyyy")</h4>
+
+                <button class="btn btn-outline-primary btn-sm" @onclick="ShowNextMonth">Next →</button>
+            </div>
+
         </div>
 
         <div class="calendar-grid">
@@ -90,5 +98,22 @@ else
             Enumerable.Range(1, daysInMonth)
                 .Select(day => new DateTime(currentMonth.Year, currentMonth.Month, day))
         );
+    }
+
+    private void ShowPreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+        BuildCalendar();
+    }
+
+    private void ShowNextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+        BuildCalendar();
+    }
+    private async Task RefreshCalendar()
+    {
+        habits = await HabitService.GetHabitsAsync();
+        BuildCalendar();
     }
 }
