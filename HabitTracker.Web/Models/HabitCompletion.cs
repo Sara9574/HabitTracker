@@ -6,6 +6,6 @@
         public DateTime Date { get; set; }
 
         public int HabitId { get; set; }
-        public Habit Habit { get; set; }
+        public Habit Habit { get; set; } = null!;
     }
 }

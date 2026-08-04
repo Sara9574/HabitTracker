@@ -1,15 +1,19 @@
 ﻿@page "/add-habit"
+@page "/edit-habit/{Id:int}"
 @using HabitTracker.Web.Models
 @using Microsoft.AspNetCore.Components.Forms
 @inject IHabitService HabitService
 @inject NavigationManager Nav
 
-<h3>Add a New Habit</h3>
+<h3>@(isEdit ? "Edit Habit" : "Add a New Habit")</h3>
 
 <EditForm Model="@habit" OnValidSubmit="HandleValidSubmit" FormName="AddHabitForm">
 
     <DataAnnotationsValidator />
     <ValidationSummary />
+
+    @* Hidden field so the Id round-trips through the form post when editing *@
+    <InputNumber @bind-Value="habit.Id" style="display:none" />
 
     <div class="mb-3">
         <label class="form-label">Habit Name</label>
@@ -18,21 +22,50 @@
 
     <div class="mb-3">
         <label class="form-label">Weekly Goal</label>
-        <InputNumber class="form-control" @bind-Value="habit.WeeklyGoal"/>
+        <InputNumber class="form-control" @bind-Value="habit.WeeklyGoal" />
     </div>
 
-    <button class="btn btn-primary" type="submit">Add Habit</button>
+    <button class="btn btn-primary" type="submit">@(isEdit ? "Save Changes" : "Add Habit")</button>
+    <a class="btn btn-outline-secondary ms-2" href="/habits">Cancel</a>
 </EditForm>
 
 @code {
+    [Parameter]
+    public int? Id { get; set; }
+
     [SupplyParameterFromForm]
     private Habit habit { get; set; } = new();
 
+    private bool isEdit => Id.HasValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Only pre-load from the DB on the initial GET, not on the form postback
+        // (on postback, habit.Id is already populated by SupplyParameterFromForm).
+        if (Id.HasValue && habit.Id == 0)
+        {
+            var existing = await HabitService.GetHabitByIdAsync(Id.Value);
+            if (existing != null)
+            {
+                habit.Id = existing.Id;
+                habit.Name = existing.Name;
+                habit.WeeklyGoal = existing.WeeklyGoal;
+                habit.CreatedAt = existing.CreatedAt;
+            }
+        }
+    }
+
     private async Task HandleValidSubmit()
     {
-        habit.CreatedAt = DateTime.UtcNow;
-
-        await HabitService.AddHabitAsync(habit);
+        if (isEdit)
+        {
+            await HabitService.EditHabitAsync(habit.Id, habit);
+        }
+        else
+        {
+            habit.CreatedAt = DateTime.UtcNow;
+            await HabitService.AddHabitAsync(habit);
+        }
 
         Nav.NavigateTo("/habits");
     }

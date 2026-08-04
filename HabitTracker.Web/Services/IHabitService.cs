@@ -9,7 +9,8 @@ namespace HabitTracker.Web.Services
         Task AddHabitAsync(Habit habit);
         Task EditHabitAsync(int id, Habit habit);
         Task RemoveHabitAsync(int id);
-        Task AddCompletionAsync(int habitId);
+        Task ToggleCompletionAsync(int habitId);
+        bool IsCompletedToday(Habit habit);
         int GetWeeklyCompletions(Habit habit);
         int GetProgressPercentage(Habit habit);
         string GetProgressColor(int percentage);

@@ -2,6 +2,8 @@
 @rendermode InteractiveServer
 
 @inject IHabitService HabitService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <h3>My Habits</h3>
 
@@ -11,31 +13,45 @@
 }
 else if (!habits.Any())
 {
-    <p>No habits yet.</p>
+    <p>No habits yet. <a href="/add-habit">Add your first one</a>.</p>
 }
 else
 {
-    <ul>
+    <ul class="list-unstyled">
         @foreach (var habit in habits)
         {
-            <li>
-                <strong>@habit.Name</strong>
-                (Weekly goal: @habit.WeeklyGoal)
-                — Completed @habit.Completions.Count times
+            var completedToday = HabitService.IsCompletedToday(habit);
+            var weekly = HabitService.GetWeeklyCompletions(habit);
+            var percent = HabitService.GetProgressPercentage(habit);
+            var color = HabitService.GetProgressColor(percent);
 
-                <button class="btn btn-success btn-sm ms-2"
-                        @onclick="() => MarkAsDone(habit.Id)">
-                    Mark as Done
-                </button>
+            <li class="mb-4 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>@habit.Name</strong>
+                        <span class="text-muted"> — @weekly / @habit.WeeklyGoal this week</span>
+                    </div>
 
-                @* Progress Bar *@
-                @{
-                    var weekly = HabitService.GetWeeklyCompletions(habit);
-                    var percent = HabitService.GetProgressPercentage(habit);
-                    var color = HabitService.GetProgressColor(percent);
-                }
+                    <div>
+                        <button type="button"
+                                class="btn btn-sm @(completedToday ? "btn-outline-secondary" : "btn-success")"
+                                @onclick="() => ToggleDone(habit.Id)">
+                            @(completedToday ? "Undo" : "Mark as Done")
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary ms-1"
+                                @onclick="() => GoToEdit(habit.Id)">
+                            Edit
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger ms-1"
+                                @onclick="() => DeleteHabit(habit.Id)">
+                            Delete
+                        </button>
+                    </div>
+                </div>
 
-                <div class="progress mt-2" style="width: 300px;">
+                <div class="progress mt-2" style="max-width: 300px;">
                     <div class="progress-bar @color"
                          role="progressbar"
                          style="width: @percent%;"
@@ -46,7 +62,6 @@ else
                     </div>
                 </div>
             </li>
-
         }
     </ul>
 }
@@ -59,9 +74,24 @@ else
         habits = await HabitService.GetHabitsAsync();
     }
 
-    private async Task MarkAsDone(int habitId)
+    private async Task ToggleDone(int habitId)
     {
-        await HabitService.AddCompletionAsync(habitId);
+        await HabitService.ToggleCompletionAsync(habitId);
         habits = await HabitService.GetHabitsAsync(); // refresh list
+    }
+
+    private void GoToEdit(int habitId)
+    {
+        Nav.NavigateTo($"/edit-habit/{habitId}");
+    }
+
+    private async Task DeleteHabit(int habitId)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Delete this habit? This cannot be undone.");
+        if (!confirmed)
+            return;
+
+        await HabitService.RemoveHabitAsync(habitId);
+        habits = await HabitService.GetHabitsAsync();
     }
 }

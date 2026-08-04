@@ -54,7 +54,7 @@ namespace HabitTracker.Web.Services
             }
         }
 
-        public async Task AddCompletionAsync(int habitId)
+        public async Task ToggleCompletionAsync(int habitId)
         {
             var habit = await _context.Habits
                 .Include(h => h.Completions)
@@ -63,13 +63,32 @@ namespace HabitTracker.Web.Services
             if (habit == null)
                 return;
 
-            habit.Completions.Add(new HabitCompletion
+            var today = DateTime.UtcNow.Date;
+            var existing = habit.Completions.FirstOrDefault(c => c.Date.Date == today);
+
+            if (existing != null)
             {
-                HabitId = habitId,
-                Date = DateTime.UtcNow
-            });
+                // Already marked today -> un-mark it
+                habit.Completions.Remove(existing);
+                _context.HabitCompletions.Remove(existing);
+            }
+            else
+            {
+                // Not marked yet today -> mark it
+                habit.Completions.Add(new HabitCompletion
+                {
+                    HabitId = habitId,
+                    Date = DateTime.UtcNow
+                });
+            }
 
             await _context.SaveChangesAsync();
+        }
+
+        public bool IsCompletedToday(Habit habit)
+        {
+            var today = DateTime.UtcNow.Date;
+            return habit.Completions.Any(c => c.Date.Date == today);
         }
 
         public int GetWeeklyCompletions(Habit habit)
