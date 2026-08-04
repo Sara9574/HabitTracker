@@ -91,6 +91,67 @@ namespace HabitTracker.Web.Services
             return habit.Completions.Any(c => c.Date.Date == today);
         }
 
+        public int GetCurrentStreak(Habit habit)
+        {
+            var dates = habit.Completions
+                .Select(c => c.Date.Date)
+                .Distinct()
+                .ToHashSet();
+
+            if (dates.Count == 0)
+                return 0;
+
+            var today = DateTime.UtcNow.Date;
+
+            // Grace period: if today isn't marked yet, the streak can still be "alive"
+            // as long as yesterday was completed. Start counting from whichever applies.
+            var cursor = dates.Contains(today) ? today : today.AddDays(-1);
+
+            if (!dates.Contains(cursor))
+                return 0;
+
+            int streak = 0;
+            while (dates.Contains(cursor))
+            {
+                streak++;
+                cursor = cursor.AddDays(-1);
+            }
+
+            return streak;
+        }
+
+        public int GetLongestStreak(Habit habit)
+        {
+            var dates = habit.Completions
+                .Select(c => c.Date.Date)
+                .Distinct()
+                .OrderBy(d => d)
+                .ToList();
+
+            if (dates.Count == 0)
+                return 0;
+
+            int longest = 1;
+            int current = 1;
+
+            for (int i = 1; i < dates.Count; i++)
+            {
+                var gap = (dates[i] - dates[i - 1]).Days;
+
+                if (gap == 1)
+                {
+                    current++;
+                    longest = Math.Max(longest, current);
+                }
+                else
+                {
+                    current = 1;
+                }
+            }
+
+            return longest;
+        }
+
         public int GetWeeklyCompletions(Habit habit)
         {
             var startOfWeek = DateTime.UtcNow.Date.AddDays(-(int)DateTime.UtcNow.DayOfWeek);

@@ -12,6 +12,8 @@ namespace HabitTracker.Web.Services
         Task ToggleCompletionAsync(int habitId);
         bool IsCompletedToday(Habit habit);
         int GetWeeklyCompletions(Habit habit);
+        int GetCurrentStreak(Habit habit);
+        int GetLongestStreak(Habit habit);
         int GetProgressPercentage(Habit habit);
         string GetProgressColor(int percentage);
         Dictionary<int, string> GetHabitColors(List<Habit> habits);
