@@ -14,6 +14,7 @@ namespace HabitTracker.Web.Services
         int GetWeeklyCompletions(Habit habit);
         int GetCurrentStreak(Habit habit);
         int GetLongestStreak(Habit habit);
+        Dictionary<DayOfWeek, int> GetCompletionsByDayOfWeek(List<Habit> habits);
         int GetProgressPercentage(Habit habit);
         string GetProgressColor(int percentage);
         Dictionary<int, string> GetHabitColors(List<Habit> habits);

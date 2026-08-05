@@ -152,6 +152,21 @@ namespace HabitTracker.Web.Services
             return longest;
         }
 
+        public Dictionary<DayOfWeek, int> GetCompletionsByDayOfWeek(List<Habit> habits)
+        {
+            var counts = Enum.GetValues<DayOfWeek>().ToDictionary(d => d, d => 0);
+
+            foreach (var habit in habits)
+            {
+                foreach (var completion in habit.Completions)
+                {
+                    counts[completion.Date.DayOfWeek]++;
+                }
+            }
+
+            return counts;
+        }
+
         public int GetWeeklyCompletions(Habit habit)
         {
             var startOfWeek = DateTime.UtcNow.Date.AddDays(-(int)DateTime.UtcNow.DayOfWeek);

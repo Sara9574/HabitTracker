@@ -1,0 +1,121 @@
+﻿@page "/stats"
+@rendermode InteractiveServer
+@using HabitTracker.Web.Models
+@inject IHabitService HabitService
+
+<h3>Stats</h3>
+
+@if (habits == null)
+{
+    <p>Loading...</p>
+}
+else if (!habits.Any())
+{
+    <p>Add some habits first to see stats here.</p>
+}
+else
+{
+    <div class="row mb-4 g-3">
+        <div class="col-sm-4">
+            <div class="card text-center p-3 h-100">
+                <div class="fs-2">@habits.Count</div>
+                <div class="text-muted">Habits Tracked</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card text-center p-3 h-100">
+                <div class="fs-2">@totalCompletions</div>
+                <div class="text-muted">Total Completions</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card text-center p-3 h-100">
+                <div class="fs-2">@(bestStreakHabit != null ? bestStreakValue.ToString() : "—")</div>
+                <div class="text-muted">
+                    Best Active Streak
+                    @if (bestStreakHabit != null)
+                    {
+                        <span>(@bestStreakHabit.Name)</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h5>Completions by Day of Week</h5>
+    <p class="text-muted small">Across all habits, all time — shows which days you tend to follow through.</p>
+    <div class="mb-4" style="max-width: 500px;">
+        @foreach (var day in orderedDays)
+        {
+            var count = dayOfWeekCounts[day];
+            var percent = maxDayCount == 0 ? 0 : (int)((double)count / maxDayCount * 100);
+            <div class="d-flex align-items-center mb-2">
+                <div style="width: 90px;">@day</div>
+                <div class="progress flex-grow-1" style="height: 18px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: @(percent)%;"></div>
+                </div>
+                <div class="ms-2 text-muted" style="width: 24px;">@count</div>
+            </div>
+        }
+    </div>
+
+    <h5>Streak Leaderboard</h5>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Habit</th>
+                <th>Current Streak</th>
+                <th>Longest Streak</th>
+                <th>Total Completions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in leaderboard)
+            {
+                <tr>
+                    <td>@row.Habit.Name</td>
+                    <td>@row.CurrentStreak</td>
+                    <td>@row.LongestStreak</td>
+                    <td>@row.Habit.Completions.Count</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Habit>? habits;
+    private Dictionary<DayOfWeek, int> dayOfWeekCounts = new();
+    private readonly DayOfWeek[] orderedDays =
+    {
+        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
+        DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
+    };
+    private int maxDayCount;
+    private int totalCompletions;
+    private Habit? bestStreakHabit;
+    private int bestStreakValue;
+    private List<(Habit Habit, int CurrentStreak, int LongestStreak)> leaderboard = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        habits = await HabitService.GetHabitsAsync();
+        dayOfWeekCounts = HabitService.GetCompletionsByDayOfWeek(habits);
+        maxDayCount = dayOfWeekCounts.Values.DefaultIfEmpty(0).Max();
+        totalCompletions = habits.Sum(h => h.Completions.Count);
+
+        leaderboard = habits
+            .Select(h => (Habit: h, CurrentStreak: HabitService.GetCurrentStreak(h), LongestStreak: HabitService.GetLongestStreak(h)))
+            .OrderByDescending(r => r.LongestStreak)
+            .ToList();
+
+        foreach (var row in leaderboard)
+        {
+            if (row.CurrentStreak > bestStreakValue)
+            {
+                bestStreakValue = row.CurrentStreak;
+                bestStreakHabit = row.Habit;
+            }
+        }
+    }
+}
