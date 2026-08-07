@@ -3,23 +3,26 @@
 @using HabitTracker.Web.Models
 @inject IHabitService HabitService
 
+<div class="page-header">
+    <h3>Your Journal</h3>
+    <div class="subtitle">Every stamp is a day you showed up.</div>
+</div>
+
 @if (habits == null)
 {
     <p>Loading...</p>
 }
+else if (!habits.Any())
+{
+    <p>No habits yet. <a href="/add-habit">Add your first one</a> to start filling in the calendar.</p>
+}
 else
 {
     <div class="calendar">
-        <div class="calendar-header">
-           
-            <div class="calendar-header d-flex justify-content-between align-items-center mb-3">
-                <button class="btn btn-outline-primary btn-sm" @onclick="ShowPreviousMonth">← Previous</button>
-
-                <h4>@currentMonth.ToString("MMMM yyyy")</h4>
-
-                <button class="btn btn-outline-primary btn-sm" @onclick="ShowNextMonth">Next →</button>
-            </div>
-
+        <div class="calendar-header d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ShowPreviousMonth">&larr; Previous</button>
+            <h4>@currentMonth.ToString("MMMM yyyy")</h4>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ShowNextMonth">Next &rarr;</button>
         </div>
 
         <div class="calendar-grid">
@@ -36,7 +39,8 @@ else
                 }
                 else
                 {
-                    <div class="day">
+                    var isToday = day.Date == DateTime.Today;
+                    <div class="day @(isToday ? "today" : "")">
                         <div class="date-number">@day.Day</div>
 
                         <div class="dots">
@@ -58,12 +62,13 @@ else
         </div>
 
         <h5 class="mt-5">Habits</h5>
-        
+        <div>
             @foreach (var habit in habits)
             {
-                <span class="dot" style="background-color:@habitColors[habit.Id]"></span>
+                <span class="dot" style="background-color:@habitColors[habit.Id]; width:10px; height:10px; margin-right:4px;"></span>
                 <span style="color:@habitColors[habit.Id]" class="legend-text">@habit.Name</span>
             }
+        </div>
     </div>
 }
 
@@ -111,9 +116,11 @@ else
         currentMonth = currentMonth.AddMonths(1);
         BuildCalendar();
     }
+
     private async Task RefreshCalendar()
     {
         habits = await HabitService.GetHabitsAsync();
+        habitColors = HabitService.GetHabitColors(habits);
         BuildCalendar();
     }
 }

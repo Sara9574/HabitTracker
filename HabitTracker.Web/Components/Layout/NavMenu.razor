@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">HabitTracker.Web</a>
+        <a class="navbar-brand" href="">HabitTracker</a>
     </div>
 </div>
 
@@ -9,35 +9,28 @@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
 
- 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                <i class="bi bi-house-door-fill"></i> Home
             </NavLink>
-
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/habits">
-                <span class="bi bi-calendar-check"></span> Habits
+                <i class="bi bi-calendar-check"></i> Habits
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/add-habit">
-                <i class="bi bi-plus-square-fill-nav-menu"></i>
-                Add Habit
+                <i class="bi bi-plus-square-fill"></i> Add Habit
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/stats">
-                <i class="bi bi-bar-chart-fill"></i>
-                Stats
+                <i class="bi bi-bar-chart-fill"></i> Stats
             </NavLink>
         </div>
 
-     
-
-    
     </nav>
 </div>
 

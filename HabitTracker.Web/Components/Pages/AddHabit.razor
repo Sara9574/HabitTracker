@@ -5,7 +5,10 @@
 @inject IHabitService HabitService
 @inject NavigationManager Nav
 
-<h3>@(isEdit ? "Edit Habit" : "Add a New Habit")</h3>
+<div class="page-header">
+    <h3>@(isEdit ? "Edit Habit" : "Add a New Habit")</h3>
+    <div class="subtitle">@(isEdit ? "Adjust the details below." : "What are you committing to?")</div>
+</div>
 
 <EditForm Model="@habit" OnValidSubmit="HandleValidSubmit" FormName="AddHabitForm">
 

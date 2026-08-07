@@ -3,7 +3,10 @@
 @using HabitTracker.Web.Models
 @inject IHabitService HabitService
 
-<h3>Stats</h3>
+<div class="page-header">
+    <h3>Stats</h3>
+    <div class="subtitle">The long view of your habits.</div>
+</div>
 
 @if (habits == null)
 {
@@ -17,21 +20,21 @@ else
 {
     <div class="row mb-4 g-3">
         <div class="col-sm-4">
-            <div class="card text-center p-3 h-100">
-                <div class="fs-2">@habits.Count</div>
-                <div class="text-muted">Habits Tracked</div>
+            <div class="stat-card">
+                <div class="stat-number">@habits.Count</div>
+                <div class="stat-label">Habits Tracked</div>
             </div>
         </div>
         <div class="col-sm-4">
-            <div class="card text-center p-3 h-100">
-                <div class="fs-2">@totalCompletions</div>
-                <div class="text-muted">Total Completions</div>
+            <div class="stat-card">
+                <div class="stat-number">@totalCompletions</div>
+                <div class="stat-label">Total Completions</div>
             </div>
         </div>
         <div class="col-sm-4">
-            <div class="card text-center p-3 h-100">
-                <div class="fs-2">@(bestStreakHabit != null ? bestStreakValue.ToString() : "—")</div>
-                <div class="text-muted">
+            <div class="stat-card">
+                <div class="stat-number">@(bestStreakHabit != null ? bestStreakValue.ToString() : "—")</div>
+                <div class="stat-label">
                     Best Active Streak
                     @if (bestStreakHabit != null)
                     {
@@ -74,9 +77,9 @@ else
             {
                 <tr>
                     <td>@row.Habit.Name</td>
-                    <td>@row.CurrentStreak</td>
-                    <td>@row.LongestStreak</td>
-                    <td>@row.Habit.Completions.Count</td>
+                    <td class="mono">@row.CurrentStreak</td>
+                    <td class="mono">@row.LongestStreak</td>
+                    <td class="mono">@row.Habit.Completions.Count</td>
                 </tr>
             }
         </tbody>
