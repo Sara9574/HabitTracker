@@ -1,5 +1,6 @@
-﻿@page "/"
+@page "/"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using HabitTracker.Web.Models
 @inject IHabitService HabitService
 
@@ -73,6 +74,10 @@ else
 }
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private string userId = string.Empty;
     private List<Habit> habits;
     private Dictionary<int, string> habitColors;
     private DateTime currentMonth = DateTime.Today;
@@ -81,7 +86,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        habits = await HabitService.GetHabitsAsync();
+        var state = await AuthState!;
+        userId = state.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        habits = await HabitService.GetHabitsAsync(userId);
         habitColors = HabitService.GetHabitColors(habits);
 
         BuildCalendar();
@@ -119,7 +127,7 @@ else
 
     private async Task RefreshCalendar()
     {
-        habits = await HabitService.GetHabitsAsync();
+        habits = await HabitService.GetHabitsAsync(userId);
         habitColors = HabitService.GetHabitColors(habits);
         BuildCalendar();
     }

@@ -1,11 +1,12 @@
-﻿@page "/stats"
+@page "/stats"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using HabitTracker.Web.Models
 @inject IHabitService HabitService
 
 <div class="page-header">
     <h3>Stats</h3>
-    <div class="subtitle">The long view of your habits.</div>
+    <div class="subtitle">Which habits need attention.</div>
 </div>
 
 @if (habits == null)
@@ -19,21 +20,15 @@ else if (!habits.Any())
 else
 {
     <div class="row mb-4 g-3">
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="stat-card">
                 <div class="stat-number">@habits.Count</div>
                 <div class="stat-label">Habits Tracked</div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="stat-card">
-                <div class="stat-number">@totalCompletions</div>
-                <div class="stat-label">Total Completions</div>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="stat-card">
-                <div class="stat-number">@(bestStreakHabit != null ? bestStreakValue.ToString() : "—")</div>
+                <div class="stat-number">@(bestStreakHabit != null ? bestStreakValue.ToString() : "0")</div>
                 <div class="stat-label">
                     Best Active Streak
                     @if (bestStreakHabit != null)
@@ -45,24 +40,7 @@ else
         </div>
     </div>
 
-    <h5>Completions by Day of Week</h5>
-    <p class="text-muted small">Across all habits, all time — shows which days you tend to follow through.</p>
-    <div class="mb-4" style="max-width: 500px;">
-        @foreach (var day in orderedDays)
-        {
-            var count = dayOfWeekCounts[day];
-            var percent = maxDayCount == 0 ? 0 : (int)((double)count / maxDayCount * 100);
-            <div class="d-flex align-items-center mb-2">
-                <div style="width: 90px;">@day</div>
-                <div class="progress flex-grow-1" style="height: 18px;">
-                    <div class="progress-bar bg-info" role="progressbar" style="width: @(percent)%;"></div>
-                </div>
-                <div class="ms-2 text-muted" style="width: 24px;">@count</div>
-            </div>
-        }
-    </div>
-
-    <h5>Streak Leaderboard</h5>
+    <h5>Habits — needing attention first</h5>
     <table class="table table-sm">
         <thead>
             <tr>
@@ -77,7 +55,7 @@ else
             {
                 <tr>
                     <td>@row.Habit.Name</td>
-                    <td class="mono">@row.CurrentStreak</td>
+                    <td class="mono @(row.CurrentStreak == 0 ? "text-muted" : "")">@row.CurrentStreak</td>
                     <td class="mono">@row.LongestStreak</td>
                     <td class="mono">@row.Habit.Completions.Count</td>
                 </tr>
@@ -87,29 +65,25 @@ else
 }
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
     private List<Habit>? habits;
-    private Dictionary<DayOfWeek, int> dayOfWeekCounts = new();
-    private readonly DayOfWeek[] orderedDays =
-    {
-        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
-        DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
-    };
-    private int maxDayCount;
-    private int totalCompletions;
     private Habit? bestStreakHabit;
     private int bestStreakValue;
     private List<(Habit Habit, int CurrentStreak, int LongestStreak)> leaderboard = new();
 
     protected override async Task OnInitializedAsync()
     {
-        habits = await HabitService.GetHabitsAsync();
-        dayOfWeekCounts = HabitService.GetCompletionsByDayOfWeek(habits);
-        maxDayCount = dayOfWeekCounts.Values.DefaultIfEmpty(0).Max();
-        totalCompletions = habits.Sum(h => h.Completions.Count);
+        var state = await AuthState!;
+        var userId = state.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        habits = await HabitService.GetHabitsAsync(userId);
 
         leaderboard = habits
             .Select(h => (Habit: h, CurrentStreak: HabitService.GetCurrentStreak(h), LongestStreak: HabitService.GetLongestStreak(h)))
-            .OrderByDescending(r => r.LongestStreak)
+            .OrderBy(r => r.CurrentStreak)
+            .ThenByDescending(r => r.LongestStreak)
             .ToList();
 
         foreach (var row in leaderboard)

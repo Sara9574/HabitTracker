@@ -1,5 +1,6 @@
-﻿@page "/add-habit"
+@page "/add-habit"
 @page "/edit-habit/{Id:int}"
+@attribute [Authorize]
 @using HabitTracker.Web.Models
 @using Microsoft.AspNetCore.Components.Forms
 @inject IHabitService HabitService
@@ -36,18 +37,25 @@
     [Parameter]
     public int? Id { get; set; }
 
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
     [SupplyParameterFromForm]
     private Habit habit { get; set; } = new();
 
     private bool isEdit => Id.HasValue;
+    private string userId = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        var state = await AuthState!;
+        userId = state.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
         // Only pre-load from the DB on the initial GET, not on the form postback
         // (on postback, habit.Id is already populated by SupplyParameterFromForm).
         if (Id.HasValue && habit.Id == 0)
         {
-            var existing = await HabitService.GetHabitByIdAsync(Id.Value);
+            var existing = await HabitService.GetHabitByIdAsync(Id.Value, userId);
             if (existing != null)
             {
                 habit.Id = existing.Id;
@@ -62,12 +70,12 @@
     {
         if (isEdit)
         {
-            await HabitService.EditHabitAsync(habit.Id, habit);
+            await HabitService.EditHabitAsync(habit.Id, habit, userId);
         }
         else
         {
             habit.CreatedAt = DateTime.UtcNow;
-            await HabitService.AddHabitAsync(habit);
+            await HabitService.AddHabitAsync(habit, userId);
         }
 
         Nav.NavigateTo("/habits");

@@ -7,7 +7,19 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    <span class="me-3 text-muted small">@context.User.Identity?.Name</span>
+                    <form action="/Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <button type="submit" class="btn btn-link p-0">Log Out</button>
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/Account/Login">Log In</a>
+                    <a href="/Account/Register">Register</a>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
 
         <article class="content px-4">

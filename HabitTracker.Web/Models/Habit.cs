@@ -13,6 +13,10 @@ namespace HabitTracker.Web.Models
 
         public DateTime CreatedAt { get; set; }
 
+        // Ownership: every habit belongs to exactly one user.
+        public string UserId { get; set; } = string.Empty;
+        public ApplicationUser? User { get; set; }
+
         public List<HabitCompletion> Completions { get; set; } = new();
     }
 }

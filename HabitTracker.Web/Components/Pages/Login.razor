@@ -1,0 +1,76 @@
+@page "/Account/Login"
+@using Microsoft.AspNetCore.Identity
+@using HabitTracker.Web.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Nav
+
+<div class="page-header">
+    <h3>Log In</h3>
+    <div class="subtitle">Welcome back.</div>
+</div>
+
+<EditForm Model="Input" OnValidSubmit="HandleLogin" FormName="LoginForm" style="max-width: 360px;">
+    <AntiforgeryToken />
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="Input.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <InputText type="password" class="form-control" @bind-Value="Input.Password" />
+    </div>
+
+    <div class="mb-3 form-check">
+        <InputCheckbox class="form-check-input" @bind-Value="Input.RememberMe" id="rememberMe" />
+        <label class="form-check-label" for="rememberMe">Remember me</label>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Log In</button>
+</EditForm>
+
+<p class="mt-3">
+    Don't have an account? <a href="/Account/Register">Register here</a>.
+</p>
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginModel Input { get; set; } = new();
+
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        var result = await SignInManager.PasswordSignInAsync(
+            Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            Nav.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            errorMessage = "Invalid email or password.";
+        }
+    }
+
+    private class LoginModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+}
